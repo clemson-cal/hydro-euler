@@ -45,18 +45,18 @@ impl Primitive { pub fn small(self, e: f64) -> bool { self.0.abs() < e && self.1
 // ============================================================================
 impl Conserved {
     pub fn mass_density     (self)  -> f64 { self.0 }
-    pub fn momentum         (self)  -> f64 { self.1 }
+    pub fn momentum_density (self)  -> f64 { self.1 }
     pub fn energy_density   (self)  -> f64 { self.2 }
 
     pub fn momentum_squared(self) -> f64 {
-        self.momentum().powi(2)
+        self.momentum_density().powi(2)
     }
 
     pub fn to_primitive(self, gamma_law_index: f64) -> Primitive {
     	let ek = 0.5 * self.momentum_squared() / self.mass_density();
     	let et = self.energy_density() - ek;
     	let pg = et * (gamma_law_index - 1.0);
-    	let vx = self.momentum() / self.mass_density();
+    	let vx = self.momentum_density() / self.mass_density();
     	Primitive(self.mass_density(), vx, pg)
     }
 }
@@ -108,6 +108,10 @@ impl Primitive {
         let advective_term = self.to_conserved(gamma_law_index) * vx;
 
         return advective_term + pressure_term;
+    }
+
+    pub fn reflect(self) -> Primitive {
+        Primitive(self.0, -self.1, self.2)
     }
 }
 
