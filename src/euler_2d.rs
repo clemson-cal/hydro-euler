@@ -46,29 +46,38 @@ impl Primitive { pub fn small(self, e: f64) -> bool { self.0.abs() < e && self.1
 
 
 // ============================================================================
-impl Conserved {
+impl Conserved
+{
     pub fn mass_density     (self)  -> f64 { self.0 }
     pub fn momentum_1       (self)  -> f64 { self.1 }
     pub fn momentum_2       (self)  -> f64 { self.2 }
     pub fn energy_density   (self)  -> f64 { self.3 }
 
-    pub fn momentum_vector  (self)  -> Vector3d {
+    pub fn momentum_vector  (self)  -> Vector3d
+    {
         Vector3d(self.momentum_1(), self.momentum_2(), 0.0)
     }
-    pub fn momentum(self, direction: Direction) -> f64 {
+
+    pub fn momentum(self, direction: Direction) -> f64
+    {
         match direction{
             Direction::X => self.momentum_1(),
             Direction::Y => self.momentum_2(),
             Direction::Z => 0.0,
         }
     }
-    pub fn momentum_squared(self) -> f64 {
+
+    pub fn momentum_squared(self) -> f64
+    {
         let s1 = self.momentum_1();
         let s2 = self.momentum_2();
-        s1*s1 + s2*s2 //Note: We use the normalized coordinate basis, so this is the correct way to square a vector in any coordinates.
+        // Note: We use the normalized coordinate basis, so this is the correct
+        // way to square a vector in any coordinates.
+        s1 * s1 + s2 * s2
     }
 
-    pub fn to_primitive(self, gamma_law_index: f64) -> Primitive {
+    pub fn to_primitive(self, gamma_law_index: f64) -> Primitive
+    {
     	let ek = 0.5 * self.momentum_squared() / self.mass_density();
     	let et = self.energy_density() - ek;
     	let pg = et * (gamma_law_index - 1.0);
@@ -82,38 +91,37 @@ impl Conserved {
 
 
 // ============================================================================
-impl Primitive {
+impl Primitive
+{
     pub fn mass_density(self) -> f64 { self.0 }
     pub fn velocity_1  (self) -> f64 { self.1 }
     pub fn velocity_2  (self) -> f64 { self.2 }
     pub fn gas_pressure(self) -> f64 { self.3 }
 
-    pub fn velocity    (self, direction: Direction) -> f64 {
-        match direction {
+    pub fn velocity    (self, direction: Direction) -> f64
+    {
+        match direction
+        {
             Direction::X => self.velocity_1(),
             Direction::Y => self.velocity_2(),
             Direction::Z => 0.0,
         }
     }
 
-    pub fn sound_speed_squared(self, gamma_law_index: f64) -> f64 {
+    pub fn sound_speed_squared(self, gamma_law_index: f64) -> f64
+    {
         gamma_law_index * self.gas_pressure() / self.mass_density()
     }
 
-    pub fn outer_wavespeeds(self, direction: Direction, gamma_law_index: f64) -> (f64, f64) {
+    pub fn outer_wavespeeds(self, direction: Direction, gamma_law_index: f64) -> (f64, f64)
+    {
         let cs = self.sound_speed_squared(gamma_law_index).sqrt();
         let vn = self.velocity(direction);
         (vn - cs, vn + cs)
     }
 
-//    pub fn max_wavespeed(self, gamma_law_index: f64) -> f64 {
-//        //let (am, ap) = self.outer_wavespeeds(gamma_law_index);
-//        let (alm, alp) = pl.outer_wavespeeds(direction, gamma_law_index);
-//        let (arm, arp) = pr.outer_wavespeeds(direction, gamma_law_index);
-//        f64::max(am.abs(), ap.abs())
-//    }
-
-    pub fn to_conserved(self, gamma_law_index: f64) -> Conserved {
+    pub fn to_conserved(self, gamma_law_index: f64) -> Conserved
+    {
         let m   = self.mass_density();
         let p   = self.gas_pressure();
         let vsq = self.velocity_1().powi(2) + self.velocity_2().powi(2);
@@ -126,7 +134,8 @@ impl Primitive {
         )
     }
 
-    pub fn flux_vector(self, direction: Direction, gamma_law_index: f64) -> Conserved {
+    pub fn flux_vector(self, direction: Direction, gamma_law_index: f64) -> Conserved
+    {
         let pg = self.gas_pressure();
         let vn = self.velocity(direction);
 
@@ -141,7 +150,8 @@ impl Primitive {
         return advective_term + pressure_term;
     }
 
-    pub fn reflect(self) -> Primitive {
+    pub fn reflect(self) -> Primitive
+    {
         Primitive(self.0, -self.1, -self.2, self.3)
     }
 }
@@ -150,33 +160,8 @@ impl Primitive {
 
 
 // ============================================================================
-impl Primitive
+pub fn riemann_hlle(pl: Primitive, pr: Primitive, direction: Direction, gamma_law_index: f64) -> Conserved
 {
-    pub fn spherical_geometry_source_terms(self, spherical_radius: f64, polar_angle_theta: f64) -> Conserved
-    {
-        let v_theta       = &self.velocity_2;
-        let v_phi         = 0.0;
-        let pressure_term = 2.0 * self.gas_pressure() / spherical_radius;
-        let velocity_term = self.density() * (v_theta * v_theta + v_phi * v_phi) / spherical_radius;
-        let theta_term    = pressure_term + velocity_term
-        Conserved(0.0, theta_term, 0.0, 0.0)
-    }
-}
-
-
-
-
-//=============================================================================
-pub enum RiemannSolverMode
-{
-    HlleFlux,
-    HlleFluxAcrossMovingFace(f64)
-}
-
-
-
-// ============================================================================
-pub fn riemann_hlle(pl: Primitive, pr: Primitive, direction: Direction, gamma_law_index: f64) -> Conserved {
     let ul = pl.to_conserved(gamma_law_index);
     let ur = pr.to_conserved(gamma_law_index);
     let fl = pl.flux_vector(direction, gamma_law_index);
@@ -197,13 +182,13 @@ pub fn riemann_hlle(pl: Primitive, pr: Primitive, direction: Direction, gamma_la
 #[cfg(test)]
 mod tests
 {
-	use crate::euler_1d::Primitive;
+	use crate::euler_2d::Primitive;
 
     fn panic_unless_recovery_is_accurate(primitive: Primitive)
     {
         let gamma_law_index = 5.0 / 3.0;
         let u = primitive.to_conserved(gamma_law_index);
-        let p = u.to_primitive(gamma_law_index).unwrap();
+        let p = u.to_primitive(gamma_law_index);
         println!("{:?} {:?}", primitive, p);
         assert!(f64::abs(primitive.velocity_1() - p.velocity_1()) < 1e-10);
         assert!(f64::abs(primitive.velocity_2() - p.velocity_2()) < 1e-10);
