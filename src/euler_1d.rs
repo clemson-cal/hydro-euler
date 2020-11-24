@@ -27,11 +27,10 @@ impl std::ops::Div<f64> for Conserved { type Output = Conserved; fn div(self, a:
 
 
 // ============================================================================
-impl Into<[f64; 3]> for Primitive { fn into(self) -> [f64; 3] { [self.0, self.1, self.2] } }
-impl From<[f64; 3]> for Primitive { fn from(a:  [f64; 3]) -> Primitive { Primitive(a[0], a[1], a[2]) } }
-
-impl Into<[f64; 3]> for Conserved { fn into(self) -> [f64; 3] { [self.0, self.1, self.2] } }
-impl From<[f64; 3]> for Conserved { fn from(a:  [f64; 3]) -> Conserved { Conserved(a[0], a[1], a[2]) } }
+impl From<Primitive> for [f64; 3] { fn from(a: Primitive) -> [f64; 3] { [a.0, a.1, a.2] } }
+impl From<Conserved> for [f64; 3] { fn from(a: Conserved) -> [f64; 3] { [a.0, a.1, a.2] } }
+impl From<[f64; 3]> for Primitive { fn from(a: [f64; 3]) -> Primitive { Primitive(a[0], a[1], a[2]) } }
+impl From<[f64; 3]> for Conserved { fn from(a: [f64; 3]) -> Conserved { Conserved(a[0], a[1], a[2]) } }
 
 impl Default for Conserved { fn default() -> Self { Conserved(0.0, 0.0, 0.0) } }
 impl Default for Primitive { fn default() -> Self { Primitive(0.0, 0.0, 0.0) } }
