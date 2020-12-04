@@ -1,8 +1,8 @@
 // ============================================================================
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Copy, Debug)] #[cfg_attr(feature="hdf5", repr(C), derive(hdf5::H5Type))]
 pub struct Conserved(pub f64, pub f64, pub f64);
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Copy, Debug)] #[cfg_attr(feature="hdf5", repr(C), derive(hdf5::H5Type))]
 pub struct Primitive(pub f64, pub f64, pub f64);
 
 
