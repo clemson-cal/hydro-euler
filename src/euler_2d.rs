@@ -4,10 +4,14 @@ use crate::geometry::{Direction, Vector3d};
 
 
 // ============================================================================
-#[derive(Clone, Copy, Debug)] #[cfg_attr(feature="hdf5", repr(C), derive(hdf5::H5Type))]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature="hdf5", repr(C), derive(hdf5::H5Type))]
+#[cfg_attr(feature="serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Conserved(pub f64, pub f64, pub f64, pub f64);
 
-#[derive(Clone, Copy, Debug)] #[cfg_attr(feature="hdf5", repr(C), derive(hdf5::H5Type))]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature="hdf5", repr(C), derive(hdf5::H5Type))]
+#[cfg_attr(feature="serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Primitive(pub f64, pub f64, pub f64, pub f64);
 
 
