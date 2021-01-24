@@ -183,6 +183,35 @@ pub fn riemann_hlle(pl: Primitive, pr: Primitive, direction: Direction, gamma_la
 
 
 
+
+/**
+ * Return Godunov fluxes of the conserved quantities and a passive scalar. The
+ * inputs sl and sr are primitive-like: they are the volumetric scalar density,
+ * just like the primitives contain the volumetric mass density.
+ */
+pub fn riemann_hlle_scalar(
+    pl: Primitive,
+    pr: Primitive,
+    sl: f64,
+    sr: f64,
+    nhat: Direction,
+    gamma_law_index: f64) -> (Conserved, f64)
+{
+    let cl = sl / pl.mass_density(); // scalar concentration
+    let cr = sr / pr.mass_density();
+    let f = riemann_hlle(pl, pr, nhat, gamma_law_index);
+
+    let g = if f.mass_density() < 0.0 {
+        cr * f.mass_density()
+    } else {
+        cl * f.mass_density()
+    };
+    (f, g)
+}
+
+
+
+
 // ============================================================================
 #[cfg(test)]
 mod tests
