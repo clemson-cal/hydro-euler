@@ -155,9 +155,36 @@ impl Primitive
         return advective_term + pressure_term;
     }
 
-    pub fn reflect(self) -> Primitive
+    pub fn reflect(self, direction: Direction) -> Primitive
     {
-        Primitive(self.0, -self.1, -self.2, self.3)
+        match direction {
+            Direction::X => Primitive(self.0, -self.1, self.2, self.3),
+            Direction::Y => Primitive(self.0, self.1, -self.2, self.3),
+            Direction::Z => panic!("no reflection for Direction::Z"),
+        }
+    }
+}
+
+
+
+
+// ============================================================================
+impl Primitive
+{
+    pub fn spherical_geometry_source_terms(self, spherical_radius: f64, polar_angle_theta: f64) -> Conserved
+    {
+        let cotq = f64::tan(std::f64::consts::FRAC_PI_2 - polar_angle_theta);
+        let ur = self.velocity_1();
+        let uq = self.velocity_2();
+        let up = 0.0;
+        let pg = self.gas_pressure();
+        let d0 = self.mass_density();
+        let sd = 0.0;
+        let sr = (2.0  * pg + d0 * (uq * uq        + up * up)) / spherical_radius;
+        let sq = (cotq * pg + d0 * (up * up * cotq - ur * uq)) / spherical_radius;
+        // let sp =        -up * d0 * (ur + uq * cotq) / spherical_radius;
+        let se = 0.0;
+        Conserved(sd, sr, sq, se)
     }
 }
 
