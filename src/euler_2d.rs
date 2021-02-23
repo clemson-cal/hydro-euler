@@ -153,6 +153,10 @@ impl Primitive {
         (vn - cs, vn + cs)
     }
 
+    pub fn max_signal_speed(self, gamma_law_index: f64) -> f64 {
+        f64::sqrt(self.velocity_squared() + self.sound_speed_squared(gamma_law_index))
+    }
+
     pub fn to_conserved(self, gamma_law_index: f64) -> Conserved {
         let m   = self.mass_density();
         let p   = self.gas_pressure();
