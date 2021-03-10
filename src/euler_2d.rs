@@ -154,7 +154,7 @@ impl Primitive {
     }
 
     pub fn max_signal_speed(self, gamma_law_index: f64) -> f64 {
-        f64::sqrt(self.velocity_squared() + self.sound_speed_squared(gamma_law_index))
+        f64::sqrt(self.velocity_squared()) + f64::sqrt(self.sound_speed_squared(gamma_law_index))
     }
 
     pub fn to_conserved(self, gamma_law_index: f64) -> Conserved {
